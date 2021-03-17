@@ -1,4 +1,5 @@
-﻿using EmployeeManagement.Models;
+﻿using EmployeeManagement.Data;
+using EmployeeManagement.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -9,20 +10,69 @@ namespace EmployeeManagement.Controllers
 {
     public class EmployeeController : Controller
     {
+        private EMSContext db;
+        public EmployeeController(EMSContext _db)
+        {
+            db = _db;
+        }
         public IActionResult Index()
         {
-            
-            //object initializer syntax
-            Person emp1 = new Person(){ Firstname = "Saugat", Lastname = "Tiwari", Address = "KTM", Salary= 20000.0  };
-            Person emp2 = new Person() { Firstname = "Saurav", Lastname = "Dangol", Address = "KTM", Salary = 20000.0 };
-            Person emp3 = new Person() { Firstname = "Anil", Lastname = "Bikram Thapa", Address = "KTM", Salary = 45000.0 };
-            Person emp4 = new Person() { Firstname = "Safal", Lastname = "Mahat", Address = "KTM", Salary = 45000.0 };
-            Person emp5 = new Person() { Firstname = "Ram", Lastname = "Kadel", Address = "Janakpur", Salary = 20500.0 };
-            Person emp6 = new Person() { Firstname = "Hari", Lastname = "Gautam", Address = "Pokhara", Salary = 15000.0 };
 
-            List<Person> employees = new List<Person>() { emp1,emp2,emp3,emp4,emp5,emp6};
 
+            var employees = db.Employees.ToList();
             return View(employees);
-        }   
+        }
+        public IActionResult Detail([FromQuery] int id)
+        {
+            var employee = db.Employees.Find(id);
+            return View(employee);
+        }
+
+        [HttpGet]
+        public IActionResult Add()
+        {
+            return View();
+        }
+        [HttpPost]
+        public ActionResult<string> Add(Person person)
+        {
+            db.Employees.Add(person);
+            db.SaveChanges();
+            return RedirectToAction(nameof(Index));
+        }
+
+        public ActionResult Edit(int id)
+        {
+            var employee = db.Employees.Find(id);
+            return View(employee);
+        }
+
+        [HttpPost]
+        public ActionResult Edit(Person person)
+        {
+            db.Employees.Attach(person);
+            db.Employees.Update(person);
+            db.SaveChanges();
+            return RedirectToAction(nameof(Index));
+        }
+
+        public ActionResult Delete(int id)
+    {
+        var employee = db.Employees.Find(id);
+        
+        return View(employee);
+    }
+    
+    [HttpPost]
+    public ActionResult Delete(Person person)
+    {        
+        db.Employees.Attach(person);
+        db.Employees.Remove(person);
+        db.SaveChanges();
+
+        return RedirectToAction(nameof(Index));
+    }
+
+
     }
 }
